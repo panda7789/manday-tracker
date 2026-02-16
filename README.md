@@ -2,8 +2,6 @@
 
 A simple command-line utility for tracking time spent on tasks and calculating work effort in mandays.
 
-**[Czech version / Česká verze](README.cs.md)**
-
 ## Features
 
 - ✅ Track time spent on multiple tasks
@@ -11,8 +9,6 @@ A simple command-line utility for tracking time spent on tasks and calculating w
 - ✅ Switch between active tasks
 - ✅ View summary of all tasks with totals
 - ✅ Persistent storage (JSON file)
-- ✅ No dependencies, lightweight
-- ✅ Works on Windows, macOS, Linux
 
 ## Installation
 
@@ -129,35 +125,6 @@ Structure:
   "activeTask": "PROJ-456"
 }
 ```
-
-Values are stored in minutes.
-
-## Customization
-
-In the `md.js` file, you can change:
-- `HOURS_PER_DAY` - number of hours in one manday (default: 8)
-- `DATA_FILE` - location of the data file
-
-## Requirements
-
-- Node.js (version 12 or higher)
-- No additional dependencies
-
-## Why This Tool?
-
-- **Fast**: Quick command-line input, no GUI overhead
-- **Local**: Your data stays on your machine
-- **Simple**: No configuration, no setup, just works
-- **Flexible**: Multiple tasks, easy switching
-- **Portable**: Single JavaScript file
-
-## Similar Tools
-
-While there are many time tracking tools available, this utility focuses on:
-- Command-line simplicity
-- Manday calculation (common in project management)
-- Zero setup and dependencies
-- Local-only data storage
 
 ## Contributing
 
