@@ -1,0 +1,34 @@
+{
+  "name": "manday-tracker",
+  "version": "1.0.0",
+  "description": "Simple CLI utility for tracking time and calculating mandays",
+  "main": "md.js",
+  "bin": {
+    "md": "./md.js"
+  },
+  "scripts": {
+    "test": "node md.js help"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/panda7789/manday-tracker.git"
+  },
+  "keywords": [
+    "manday",
+    "time-tracking",
+    "cli",
+    "utility",
+    "productivity",
+    "project-management"
+  ],
+  "author": "",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/panda7789/manday-tracker/issues"
+  },
+  "homepage": "https://github.com/panda7789/manday-tracker#readme",
+  "engines": {
+    "node": ">=12.0.0"
+  }
+}
+
