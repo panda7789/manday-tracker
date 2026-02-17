@@ -3,11 +3,11 @@
 const fs = require('fs');
 const path = require('path');
 
-// Soubor pro ukládání dat
+// File for storing data
 const DATA_FILE = path.join(__dirname, 'mandays.json');
 const HOURS_PER_DAY = 8;
 
-// Načtení dat
+// Load data
 function loadData() {
   try {
     if (fs.existsSync(DATA_FILE)) {
@@ -15,234 +15,235 @@ function loadData() {
       return JSON.parse(data);
     }
   } catch (error) {
-    console.error('Chyba při načítání dat:', error.message);
+    console.error('Error loading data:', error.message);
   }
   return { tasks: {}, activeTask: 'default' };
 }
 
-// Uložení dat
+// Save data
 function saveData(data) {
   try {
     fs.writeFileSync(DATA_FILE, JSON.stringify(data, null, 2), 'utf8');
   } catch (error) {
-    console.error('Chyba při ukládání dat:', error.message);
+    console.error('Error saving data:', error.message);
   }
 }
 
-// Převod času z formátu H:MM na minuty
+// Parse time from H:MM format to minutes
 function parseTime(timeStr) {
   const match = timeStr.match(/^(\d+):(\d+)$/);
   if (!match) {
-    throw new Error('Neplatný formát času. Použijte formát H:MM nebo HH:MM');
+    throw new Error('Invalid time format. Use H:MM or HH:MM');
   }
   const hours = parseInt(match[1], 10);
   const minutes = parseInt(match[2], 10);
   if (minutes >= 60) {
-    throw new Error('Minuty musí být mezi 0-59');
+    throw new Error('Minutes must be between 0-59');
   }
   return hours * 60 + minutes;
 }
 
-// Převod minut na formát H:MM
+// Format minutes to H:MM
 function formatTime(totalMinutes) {
   const hours = Math.floor(totalMinutes / 60);
   const minutes = totalMinutes % 60;
   return `${hours}:${minutes.toString().padStart(2, '0')}`;
 }
 
-// Výpočet mandayů
+// Calculate mandays
 function calculateMandays(totalMinutes) {
   const totalHours = totalMinutes / 60;
   const mandays = totalHours / HOURS_PER_DAY;
   return mandays;
 }
 
-// Přidání času k tasku
+// Add time to a task
 function addTime(data, taskName, timeStr) {
   const minutesToAdd = parseTime(timeStr);
-  
-  if (!data.tasks[taskName]) {
+
+  if (!(taskName in data.tasks)) {
     data.tasks[taskName] = 0;
   }
-  
+
   data.tasks[taskName] += minutesToAdd;
   data.activeTask = taskName;
-  
+
   saveData(data);
-  
+
   const totalMinutes = data.tasks[taskName];
   const mandays = calculateMandays(totalMinutes);
-  
-  console.log(`✓ Přidáno ${timeStr} k tasku "${taskName}"`);
-  console.log(`  Celkový čas: ${formatTime(totalMinutes)}`);
-  console.log(`  Mandayů: ${mandays.toFixed(3)} MD (${mandays.toFixed(2)} MD)`);
+
+  console.log(`✓ Added ${timeStr} to task "${taskName}"`);
+  console.log(`  Total time: ${formatTime(totalMinutes)}`);
+  console.log(`  Mandays: ${mandays.toFixed(3)} MD (${mandays.toFixed(2)} MD)`);
 }
 
-// Zobrazení přehledu
+// Show summary of all tasks
 function showSummary(data) {
   if (Object.keys(data.tasks).length === 0) {
-    console.log('Zatím nejsou zaznamenány žádné tasky.');
+    console.log('No tasks recorded yet.');
     return;
   }
-  
-  console.log('\n=== PŘEHLED TASKŮ ===\n');
-  
+
+  console.log('\n=== TASK OVERVIEW ===\n');
+
   let totalMinutes = 0;
-  
+
   for (const [taskName, minutes] of Object.entries(data.tasks)) {
     const mandays = calculateMandays(minutes);
-    const isActive = taskName === data.activeTask ? ' ← AKTIVNÍ' : '';
-    
+    const isActive = taskName === data.activeTask ? ' <- ACTIVE' : '';
+
     console.log(`${taskName}${isActive}`);
-    console.log(`  Čas: ${formatTime(minutes)}`);
-    console.log(`  Mandayů: ${mandays.toFixed(3)} MD (${mandays.toFixed(2)} MD)`);
+    console.log(`  Time: ${formatTime(minutes)}`);
+    console.log(`  Mandays: ${mandays.toFixed(3)} MD (${mandays.toFixed(2)} MD)`);
     console.log('');
-    
+
     totalMinutes += minutes;
   }
-  
+
   if (Object.keys(data.tasks).length > 1) {
     const totalMandays = calculateMandays(totalMinutes);
-    console.log('--- CELKEM ---');
-    console.log(`  Čas: ${formatTime(totalMinutes)}`);
-    console.log(`  Mandayů: ${totalMandays.toFixed(3)} MD (${totalMandays.toFixed(2)} MD)`);
+    console.log('--- TOTAL ---');
+    console.log(`  Time: ${formatTime(totalMinutes)}`);
+    console.log(`  Mandays: ${totalMandays.toFixed(3)} MD (${totalMandays.toFixed(2)} MD)`);
   }
 }
 
-// Přepnutí aktivního tasku
+// Switch active task
 function switchTask(data, taskName) {
   data.activeTask = taskName;
   saveData(data);
-  
-  if (data.tasks[taskName]) {
-    const minutes = data.tasks[taskName];
-    const mandays = calculateMandays(minutes);
-    console.log(`✓ Přepnuto na task "${taskName}"`);
-    console.log(`  Aktuální čas: ${formatTime(minutes)}`);
-    console.log(`  Mandayů: ${mandays.toFixed(3)} MD`);
-  } else {
-    console.log(`✓ Přepnuto na nový task "${taskName}"`);
-    console.log(`  Zatím žádný zaznamenaný čas`);
-  }
-}
 
-// Vynulování dat
-function resetData(data, taskName) {
-  if (taskName) {
-    // Reset konkrétního tasku
-    if (taskName in data.tasks) {
-      data.tasks[taskName] = 0;
-      saveData(data);
-      console.log(`✓ Task "${taskName}" byl vynulován na 0:00`);
-    } else {
-      console.log(`Task "${taskName}" neexistuje`);
-    }
-  } else {
-    // Reset všech tasků
-    data.tasks = {};
-    data.activeTask = 'default';
-    saveData(data);
-    console.log('✓ Všechny tasky byly vynulovány');
-  }
-}
-
-// Smazání tasku
-function deleteTask(data, taskName) {
-  if (!taskName) {
-    console.error('Chyba: Zadejte název tasku ke smazání');
-    console.log('Použití: md delete <název>');
-    process.exit(1);
-  }
-  
   if (taskName in data.tasks) {
     const minutes = data.tasks[taskName];
     const mandays = calculateMandays(minutes);
-    
+    console.log(`✓ Switched to task "${taskName}"`);
+    console.log(`  Current time: ${formatTime(minutes)}`);
+    console.log(`  Mandays: ${mandays.toFixed(3)} MD`);
+  } else {
+    console.log(`✓ Switched to new task "${taskName}"`);
+    console.log(`  No time recorded yet`);
+  }
+}
+
+// Reset task data
+function resetData(data, taskName) {
+  if (taskName) {
+    // Reset a specific task
+    if (taskName in data.tasks) {
+      data.tasks[taskName] = 0;
+      saveData(data);
+      console.log(`✓ Task "${taskName}" has been reset to 0:00`);
+    } else {
+      console.log(`Task "${taskName}" does not exist`);
+    }
+  } else {
+    // Reset all tasks
+    data.tasks = {};
+    data.activeTask = 'default';
+    saveData(data);
+    console.log('✓ All tasks have been reset');
+  }
+}
+
+// Delete a task
+function deleteTask(data, taskName) {
+  if (!taskName) {
+    console.error('Error: Provide a task name to delete');
+    console.log('Usage: md delete <name>');
+    process.exit(1);
+  }
+
+  if (taskName in data.tasks) {
+    const minutes = data.tasks[taskName];
+    const mandays = calculateMandays(minutes);
+
     delete data.tasks[taskName];
-    
-    // Pokud byl smazaný task aktivní, přepneme na default nebo první dostupný
+
+    // If the deleted task was active, switch to first available or default
     if (data.activeTask === taskName) {
       const remainingTasks = Object.keys(data.tasks);
       data.activeTask = remainingTasks.length > 0 ? remainingTasks[0] : 'default';
     }
-    
+
     saveData(data);
-    console.log(`✓ Task "${taskName}" byl smazán`);
-    console.log(`  Smazaný čas: ${formatTime(minutes)} (${mandays.toFixed(2)} MD)`);
+    console.log(`✓ Task "${taskName}" has been deleted`);
+    console.log(`  Deleted time: ${formatTime(minutes)} (${mandays.toFixed(2)} MD)`);
   } else {
-    console.log(`Task "${taskName}" neexistuje`);
+    console.log(`Task "${taskName}" does not exist`);
   }
 }
 
-// Zobrazení nápovědy
+// Show help
 function showHelp() {
   console.log(`
-MANDAY TRACKER - Nápověda
-=========================
+MANDAY TRACKER - Help
+=====================
 
-Použití:
-  md <čas>              Přidá čas k aktivnímu tasku
-  md                    Zobrazí přehled všech tasků
-  md switch <název>     Přepne na jiný task
-  md delete <název>     Smaže task ze seznamu
-  md reset              Vynuluje všechny tasky
-  md reset <název>      Vynuluje konkrétní task na 0:00
-  md help               Zobrazí tuto nápovědu
+Usage:
+  md <time>             Add time to the active task
+  md                    Show summary of all tasks
+  md switch <name>      Switch to a different task
+  md delete <name>      Delete a task from the list
+  md reset              Reset all tasks to zero
+  md reset <name>       Reset a specific task to 0:00
+  md help               Show this help message
 
-Příklady:
-  md 2:15               Přidá 2 hodiny 15 minut k aktivnímu tasku
-  md 0:30               Přidá 30 minut
-  md                    Zobrazí přehled
-  md switch PROJ-123    Přepne na task PROJ-123
-  md switch dev         Přepne na task dev
-  md delete PROJ-123    Smaže task PROJ-123 ze seznamu
-  md reset              Vymaže všechny tasky a začne od nuly
-  md reset PROJ-123     Vynuluje task PROJ-123 na 0:00 (ale ponechá v seznamu)
+Examples:
+  md 2:15               Add 2 hours 15 minutes to the active task
+  md 0:30               Add 30 minutes
+  md                    Show summary
+  md switch PROJ-123    Switch to task PROJ-123
+  md switch dev         Switch to task dev
+  md delete PROJ-123    Delete task PROJ-123 from the list
+  md reset              Clear all tasks and start fresh
+  md reset PROJ-123     Reset task PROJ-123 to 0:00 (keeps it in the list)
 
-Poznámky:
-  - Čas se zadává ve formátu H:MM nebo HH:MM
-  - 1 manday = ${HOURS_PER_DAY} hodin
-  - Data jsou uložena v: ${DATA_FILE}
-  - Rozdíl mezi delete a reset: delete odstraní task úplně, reset pouze vynuluje čas na 0:00
+Notes:
+  - Time format is H:MM or HH:MM
+  - 1 manday = ${HOURS_PER_DAY} hours
+  - Data is stored in: ${DATA_FILE}
+  - Difference between delete and reset:
+      delete  removes the task entirely
+      reset   only zeroes out the time (task remains in list)
 `);
 }
 
-// Hlavní funkce
+// Main function
 function main() {
   const args = process.argv.slice(2);
   const data = loadData();
-  
+
   try {
     if (args.length === 0) {
-      // Bez parametrů - zobrazit přehled
+      // No arguments - show summary
       showSummary(data);
     } else if (args[0] === 'help' || args[0] === '--help' || args[0] === '-h') {
-      // Nápověda
       showHelp();
     } else if (args[0] === 'switch') {
-      // Přepnutí tasku
+      // Switch task
       if (args.length < 2) {
-        console.error('Chyba: Zadejte název tasku pro přepnutí');
-        console.log('Použití: md switch <název>');
+        console.error('Error: Provide a task name to switch to');
+        console.log('Usage: md switch <name>');
         process.exit(1);
       }
       switchTask(data, args[1]);
     } else if (args[0] === 'delete' || args[0] === 'del' || args[0] === 'rm') {
-      // Smazání tasku
+      // Delete task
       deleteTask(data, args[1]);
     } else if (args[0] === 'reset') {
-      // Vynulování tasků
-      resetData(data, args[1]); // args[1] může být undefined pro reset všeho
+      // Reset tasks (args[1] may be undefined to reset all)
+      resetData(data, args[1]);
     } else if (args[0].match(/^\d+:\d+$/)) {
-      // Přidání času k aktivnímu tasku
+      // Add time to active task
       addTime(data, data.activeTask, args[0]);
     } else {
-      console.error(`Chyba: Neznámý příkaz "${args[0]}"`);
-      console.log('Použijte "md help" pro nápovědu');
+      console.error(`Error: Unknown command "${args[0]}"`);
+      console.log('Run "md help" for usage information');
       process.exit(1);
     }
   } catch (error) {
-    console.error('Chyba:', error.message);
+    console.error('Error:', error.message);
     process.exit(1);
   }
 }
