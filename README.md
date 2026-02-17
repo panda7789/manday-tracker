@@ -32,12 +32,6 @@ function md { node C:\path\to\directory\md.js $args }
 
 **Note:** The `md` command is a built-in alias for `mkdir` in PowerShell. After adding to your profile, `md` will run the manday tracker. To create directories, use `mkdir` or `New-Item`.
 
-### Option 3: Direct Execution
-
-```bash
-node md.js <parameters>
-```
-
 ## Usage
 
 ### Basic Commands
@@ -73,70 +67,6 @@ md reset             # Clear all tasks (start fresh)
 md reset PROJ-123    # Reset task PROJ-123 to 0:00 (keeps it in list)
 ```
 
-**Help:**
-```bash
-md help
-```
-
-## Example Workflow
-
-```bash
-# Day 1 - Start working on a project
-md 3:30                # Add 3:30 to default task
-                       # Total time: 3:30, Mandays: 0.438 MD
-
-# Continue in the afternoon
-md 4:15                # Add more time
-                       # Total time: 7:45, Mandays: 0.969 MD
-
-# Day 2 - Different project
-md switch PROJ-456     # Switch to new task
-md 2:00                # Add 2 hours to PROJ-456
-
-# View summary
-md
-# Output:
-# === TASK OVERVIEW ===
-# 
-# default
-#   Time: 7:45
-#   Mandays: 0.969 MD (0.97 MD)
-# 
-# PROJ-456 ← ACTIVE
-#   Time: 2:00
-#   Mandays: 0.250 MD (0.25 MD)
-# 
-# --- TOTAL ---
-#   Time: 9:45
-#   Mandays: 1.219 MD (1.22 MD)
-```
-
-## Data Storage
-
-Data is stored in a `mandays.json` file in the same directory as the script.
-
-Structure:
-```json
-{
-  "tasks": {
-    "default": 465,
-    "PROJ-456": 120
-  },
-  "activeTask": "PROJ-456"
-}
-```
-
-## Contributing
-
-Contributions are welcome! Feel free to:
-- Report bugs
-- Suggest features
-- Submit pull requests
-
 ## License
 
 MIT License - see [LICENSE](LICENSE) file for details.
-
-## Author
-
-Created as a simple personal utility for tracking project time.
