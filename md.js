@@ -4,7 +4,7 @@ const fs = require('fs');
 const path = require('path');
 
 // File for storing data
-const DATA_FILE = path.join(__dirname, 'mandays.json');
+const DATA_FILE = process.env.MD_DATA_FILE || path.join(__dirname, 'mandays.json');
 const HOURS_PER_DAY = 8;
 
 // Load data
@@ -57,6 +57,22 @@ function calculateMandays(totalMinutes) {
   return mandays;
 }
 
+// Display time and mandays information
+function displayTimeInfo(minutes, showHours = false) {
+  const mandays = calculateMandays(minutes);
+  console.log(`Time: ${formatTime(minutes)}`);
+  console.log(`Mandays: ${mandays.toFixed(3)} MD (${mandays.toFixed(2)} MD)`);
+  if (showHours) {
+    console.log(`Hours: ${(minutes / 60).toFixed(2)} hours`);
+  }
+}
+
+// Calculate and display mandays without saving
+function calculateAndDisplay(timeStr) {
+  const minutes = parseTime(timeStr);
+  displayTimeInfo(minutes, true);
+}
+
 // Add time to a task
 function addTime(data, taskName, timeStr) {
   const minutesToAdd = parseTime(timeStr);
@@ -71,11 +87,10 @@ function addTime(data, taskName, timeStr) {
   saveData(data);
 
   const totalMinutes = data.tasks[taskName];
-  const mandays = calculateMandays(totalMinutes);
 
   console.log(`✓ Added ${timeStr} to task "${taskName}"`);
   console.log(`  Total time: ${formatTime(totalMinutes)}`);
-  console.log(`  Mandays: ${mandays.toFixed(3)} MD (${mandays.toFixed(2)} MD)`);
+  console.log(`  Mandays: ${calculateMandays(totalMinutes).toFixed(3)} MD (${calculateMandays(totalMinutes).toFixed(2)} MD)`);
 }
 
 // Show summary of all tasks
@@ -183,6 +198,7 @@ MANDAY TRACKER - Help
 Usage:
   md <time>             Add time to the active task
   md                    Show summary of all tasks
+  md c <time>        Calculate mandays (without saving)
   md switch <name>      Switch to a different task
   md delete <name>      Delete a task from the list
   md reset              Reset all tasks to zero
@@ -193,6 +209,8 @@ Examples:
   md 2:15               Add 2 hours 15 minutes to the active task
   md 0:30               Add 30 minutes
   md                    Show summary
+  md c 0:10          Calculate how many MD is 10 minutes (0.021 MD)
+  md c 4:30          Quick calculation without affecting tasks
   md switch PROJ-123    Switch to task PROJ-123
   md switch dev         Switch to task dev
   md delete PROJ-123    Delete task PROJ-123 from the list
@@ -203,6 +221,7 @@ Notes:
   - Time format is H:MM or HH:MM
   - 1 manday = ${HOURS_PER_DAY} hours
   - Data is stored in: ${DATA_FILE}
+  - Use 'c' (or 'calc') for quick conversions without affecting your tasks
   - Difference between delete and reset:
       delete  removes the task entirely
       reset   only zeroes out the time (task remains in list)
@@ -220,6 +239,15 @@ function main() {
       showSummary(data);
     } else if (args[0] === 'help' || args[0] === '--help' || args[0] === '-h') {
       showHelp();
+    } else if (args[0] === 'calc' || args[0] === 'calculate' || args[0] === 'c') {
+      // Calculate mandays without saving
+      if (args.length < 2) {
+        console.error('Error: Provide a time to calculate');
+        console.log('Usage: md c <time>  (or: md c <time>)');
+        console.log('Example: md c 2:30');
+        process.exit(1);
+      }
+      calculateAndDisplay(args[1]);
     } else if (args[0] === 'switch') {
       // Switch task
       if (args.length < 2) {
